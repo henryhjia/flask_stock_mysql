@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Price Result</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>{{ ticker }} Stock Price</h1>
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Min Price:</strong> {{ min_price }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Max Price:</strong> {{ max_price }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Mean Price:</strong> {{ mean_price }}
+                    </div>
+                </div>
+            </div>
+            <img src="{{ plot_url }}" alt="Stock Price Plot" class="img-fluid rounded mx-auto d-block my-4">
+            <a href="/" class="btn btn-secondary btn-block">Go Back</a>
+            <h2 class="text-center mt-4">Daily Prices</h2>
+            <div class="table-responsive">
+                {{ data_table|safe }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

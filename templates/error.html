@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1 class="text-danger">Error</h1>
+            <div class="alert alert-danger" role="alert">
+                No data found for the given ticker and date range.
+            </div>
+            <a href="/" class="btn btn-primary btn-block">Go Back</a>
+        </div>
+    </div>
+</body>
+</html>

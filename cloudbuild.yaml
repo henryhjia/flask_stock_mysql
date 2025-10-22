@@ -1,0 +1,27 @@
+steps:
+- name: 'python:3.10'
+  id: 'Install Dependencies'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    python3 -m venv /workspace/venv
+    source /workspace/venv/bin/activate
+    pip install -r requirements.txt
+    pip install pytest
+
+- name: 'python:3.10'
+  id: 'Run Unit Tests'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    source /workspace/venv/bin/activate
+    python3 -m pytest tests/
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'Deploy to App Engine'
+  args: ['app', 'deploy']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
