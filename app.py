@@ -24,7 +24,7 @@ def date_format(x, pos=None):
     return mdates.num2date(x).strftime('%Y-%m-%d')
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'a_very_secret_key'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 # Database connection
 def get_db_connection():
