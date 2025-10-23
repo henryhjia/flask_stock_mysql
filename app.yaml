@@ -13,7 +13,7 @@ handlers:
 
 env_variables:
   SECRET_KEY: "YOUR_SECRET_KEY"
-  MYSQL_HOST: "YOUR_MYSQL_HOST"
+  MYSQL_HOST: "flask-stock-mysql:us-central1:flask-stock-mysql-instance"
   MYSQL_USER: "YOUR_MYSQL_USER"
   MYSQL_PASSWORD: "YOUR_MYSQL_PASSWORD"
   MYSQL_DB: "YOUR_MYSQL_DB"
