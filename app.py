@@ -35,7 +35,6 @@ def get_db_connection():
         database=os.environ.get("MYSQL_DB")
     )
     return connection
-    return connection
 
 # User model
 class User(UserMixin):
