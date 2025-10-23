@@ -141,6 +141,9 @@ def login():
         user_data = cursor.fetchone()
         cursor.close()
         conn.close()
+        if user_data is None:
+            flash('Account not found. Please register first.', 'info')
+            return redirect(url_for('register'))
         if user_data and check_password_hash(user_data['password'], form.password.data):
             user = User(user_data['id'], user_data['username'], user_data['email'], user_data['password'])
             login_user(user)
