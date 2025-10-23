@@ -7,6 +7,20 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <div class="header-bar">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <a class="navbar-brand" href="/">Stock Viewer</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ml-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout">Logout</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    </div>
     <div class="container">
         <div class="card">
             <h1>{{ ticker }} Stock Price</h1>
@@ -28,7 +42,7 @@
                 </div>
             </div>
             <img src="{{ plot_url }}" alt="Stock Price Plot" class="img-fluid rounded mx-auto d-block my-4">
-            <a href="/" class="btn btn-secondary btn-block">Go Back</a>
+            <a href="/stock_viewer" class="btn btn-secondary btn-block">Go Back</a>
             <h2 class="text-center mt-4">Daily Prices</h2>
             <div class="table-responsive">
                 {{ data_table|safe }}

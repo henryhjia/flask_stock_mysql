@@ -27,3 +27,20 @@ h1 {
 .table {
     margin-top: 30px;
 }
+
+.header-bar {
+    background-color: #343a40;
+    padding: 10px 20px;
+}
+
+.header-bar .navbar-brand {
+    color: white;
+}
+
+.header-bar .navbar-nav .nav-link {
+    color: white !important; /* Use !important to override bootstrap styles */
+}
+
+.header-bar .navbar-nav .nav-link:hover {
+    color: #f8f9fa !important;
+}

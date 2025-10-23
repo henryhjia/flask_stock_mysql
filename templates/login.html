@@ -1,0 +1,38 @@
+{% extends "_base.html" %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="split-screen">
+    <div class="left-pane">
+        <div>
+            <h1>Welcome to Stock Viewer</h1>
+            <p>Your personal stock market dashboard</p>
+        </div>
+    </div>
+    <div class="right-pane">
+        <div class="login-form">
+            <h1>Login</h1>
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.email.label(class="form-control-label") }}
+                    {{ form.email(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.password.label(class="form-control-label") }}
+                    {{ form.password(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.submit(class="btn") }}
+                </div>
+            </form>
+            <div class="text-center">
+                <p>New User? <a href="{{ url_for('register') }}">Click to Register!</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,16 +1,63 @@
 import sys
 import os
+
+
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import unittest
 from unittest.mock import patch
 import pandas as pd
-from app import app
+from app import app, get_db_connection, User
+from werkzeug.security import generate_password_hash
+from flask_login import login_user, current_user
 
 class AppTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.app = app.test_client()
+        cls.app.testing = True
+
+        # Create a test user in the database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        hashed_password = generate_password_hash('testpassword', method='pbkdf2:sha256')
+        try:
+            cursor.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
+                           ('testuser', 'test@example.com', hashed_password))
+            conn.commit()
+        except mysql.connector.Error as err:
+            # If user already exists, ignore the error
+            if "Duplicate entry" not in str(err):
+                pass # Ignore duplicate entry error
+            else:
+                raise
+        cursor.close()
+        conn.close()
+
+    @classmethod
+    def tearDownClass(cls):
+        # Clean up the test user from the database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users WHERE username = %s", ('testuser',))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
     def setUp(self):
-        self.app = app.test_client()
-        self.app.testing = True
+        # Manually log in the test user before each test
+        with self.app as client:
+            with client.session_transaction() as session:
+                # Fetch the user from the database to get their ID
+                conn = get_db_connection()
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("SELECT id FROM users WHERE email = %s", ('test@example.com',))
+                user_data = cursor.fetchone()
+                cursor.close()
+                conn.close()
+                if user_data:
+                    session['_user_id'] = str(user_data['id'])
 
     @patch('yfinance.download')
     def test_plot(self, mock_download):
@@ -79,7 +126,7 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'<title>Error</title>', response.data)
         self.assertIn(b'No data found for the given ticker and date range.', response.data)
-        self.assertIn(b'<a href="/" class="btn btn-primary btn-block">Go Back</a>', response.data)
+        self.assertIn(b'<a href="/stock_viewer" class="btn btn-primary btn-block">Go Back</a>', response.data)
 
 if __name__ == '__main__':
     unittest.main()
