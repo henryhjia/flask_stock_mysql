@@ -7,14 +7,17 @@ entrypoint: gunicorn -b :$PORT app:app
 automatic_scaling:
   max_instances: 1
 
+beta_settings:
+    cloud_sql_instances: flask-stock-mysql:us-central1:flask-stock-mysql-instance
+
 handlers:
 - url: /static
   static_dir: static
 
 env_variables:
-  SECRET_KEY: "YOUR_SECRET_KEY"
-  MYSQL_HOST: "flask-stock-mysql:us-central1:flask-stock-mysql-instance"
-  MYSQL_USER: "YOUR_MYSQL_USER"
-  MYSQL_PASSWORD: "YOUR_MYSQL_PASSWORD"
-  MYSQL_DB: "YOUR_MYSQL_DB"
+  # The following variables are now managed by Secret Manager
+  # SECRET_KEY: "..."
+  # MYSQL_USER: "..."
+  # MYSQL_PASSWORD: "..."
+  # MYSQL_DB: "..."
 

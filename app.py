@@ -19,21 +19,56 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.dates as mdates
 from matplotlib.ticker import FuncFormatter
 
+# Import the Secret Manager client library.
+from google.cloud import secretmanager
+import google.auth
+
+def get_secret(secret_id, version_id="latest"):
+    """
+    Get the payload for the given secret version.
+    """
+    # Only try to access Secret Manager if running on App Engine
+    if os.environ.get('GAE_ENV', '').startswith('standard'):
+        try:
+            _, project_id = google.auth.default()
+            client = secretmanager.SecretManagerServiceClient()
+            name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
+            response = client.access_secret_version(name=name)
+            return response.payload.data.decode('UTF-8')
+        except Exception as e:
+            # In production, you might want to handle this differently, 
+            # e.g., by logging the error and raising a more specific exception.
+            raise e
+    else:
+        # For local development, fall back to environment variables.
+        return os.environ.get(secret_id)
+
 
 def date_format(x, pos=None):
     return mdates.num2date(x).strftime('%Y-%m-%d')
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SECRET_KEY'] = get_secret('SECRET_KEY')
 
 # Database connection
 def get_db_connection():
-    connection = mysql.connector.connect(
-        host=os.environ.get("MYSQL_HOST"),
-        user=os.environ.get("MYSQL_USER"),
-        password=os.environ.get("MYSQL_PASSWORD"),
-        database=os.environ.get("MYSQL_DB")
-    )
+    if os.environ.get('GAE_ENV', '').startswith('standard'):
+        # Connect using the Unix socket on App Engine
+        unix_socket = '/cloudsql/flask-stock-mysql:us-central1:flask-stock-mysql-instance'
+        connection = mysql.connector.connect(
+            user=get_secret("MYSQL_USER"),
+            password=get_secret("MYSQL_PASSWORD"),
+            database=get_secret("MYSQL_DB"),
+            unix_socket=unix_socket
+        )
+    else:
+        # Connect using TCP on local machine
+        connection = mysql.connector.connect(
+            host=os.environ.get("MYSQL_HOST"),
+            user=get_secret("MYSQL_USER"),
+            password=get_secret("MYSQL_PASSWORD"),
+            database=get_secret("MYSQL_DB")
+        )
     return connection
 
 # User model
