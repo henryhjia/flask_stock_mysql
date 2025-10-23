@@ -11,6 +11,7 @@ import pandas as pd
 from app import app, get_db_connection, User
 from werkzeug.security import generate_password_hash
 from flask_login import login_user, current_user
+from bs4 import BeautifulSoup
 
 class AppTestCase(unittest.TestCase):
     @classmethod
@@ -127,6 +128,45 @@ class AppTestCase(unittest.TestCase):
         self.assertIn(b'<title>Error</title>', response.data)
         self.assertIn(b'No data found for the given ticker and date range.', response.data)
         self.assertIn(b'<a href="/stock_viewer" class="btn btn-primary btn-block">Go Back</a>', response.data)
+
+    def test_login_invalid_email_format(self):
+        with self.app as client:
+            client.get('/logout') # Ensure user is logged out
+            response = client.get('/login')
+            self.assertEqual(response.status_code, 200)
+            # Extract CSRF token (this is a simplified way, might need more robust parsing)
+            # Assuming the CSRF token is in a hidden input field named 'csrf_token'
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(response.data, 'html.parser')
+            csrf_token = soup.find('input', {'name': 'csrf_token'})['value']
+
+            response = client.post('/login', data={
+                'csrf_token': csrf_token,
+                'email': 'invalid-email',
+                'password': 'anypassword'
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Invalid email address.', response.data)
+
+    def test_register_invalid_email_format(self):
+        with self.app as client:
+            client.get('/logout') # Ensure user is logged out
+            response = client.get('/register')
+            self.assertEqual(response.status_code, 200)
+            # Extract CSRF token
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(response.data, 'html.parser')
+            csrf_token = soup.find('input', {'name': 'csrf_token'})['value']
+
+            response = client.post('/register', data={
+                'csrf_token': csrf_token,
+                'username': 'testuser123',
+                'email': 'invalid-email-for-reg',
+                'password': 'password123',
+                'confirm_password': 'password123'
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Invalid email address.', response.data)
 
 if __name__ == '__main__':
     unittest.main()
