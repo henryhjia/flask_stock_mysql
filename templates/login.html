@@ -38,6 +38,9 @@
                 <div class="form-group">
                     {{ form.submit(class="btn") }}
                 </div>
+                <div class="text-center">
+                    <p><a href="{{ url_for('forgot_password') }}">Forgot Password?</a></p>
+                </div>
             </form>
             <div class="text-center">
                 <p>New User? <a href="{{ url_for('register') }}">Click to Register!</a></p>

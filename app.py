@@ -3,6 +3,8 @@ from io import BytesIO
 import matplotlib
 matplotlib.use('Agg')
 import os
+import secrets
+from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -133,6 +135,25 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
+class RequestResetForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+    def validate_email(self, email):
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email.data,))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if user is None:
+            raise ValidationError('There is no account with that email. You must register first.')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
+
 # Routes
 @app.route('/')
 def index():
@@ -190,6 +211,64 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('stock_viewer'))
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE email = %s", (form.email.data,))
+        user_data = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if user_data:
+            # Generate token and store in DB
+            token = secrets.token_urlsafe(32)
+            expires_at = datetime.now() + timedelta(hours=1) # Token valid for 1 hour
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE users SET reset_token = %s, reset_token_expiration = %s WHERE email = %s",
+                           (token, expires_at, form.email.data))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            flash(f'A password reset link has been generated. For local testing, here is your link: {url_for("reset_token", token=token, _external=True)}', 'info')
+        else:
+            flash('If an account with that email exists, a password reset link has been sent.', 'info')
+        return redirect(url_for('login'))
+    return render_template('forgot_password.html', title='Reset Password', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('stock_viewer'))
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM users WHERE reset_token = %s", (token,))
+    user_data = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if user_data is None or datetime.now() > user_data['reset_token_expiration']:
+        flash('That is an invalid or expired token', 'warning')
+        return redirect(url_for('forgot_password'))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET password = %s, reset_token = NULL, reset_token_expiration = NULL WHERE id = %s",
+                       (hashed_password, user_data['id']))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash('Your password has been updated! You are now able to log in', 'success')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', title='Reset Password', form=form)
 
 @app.route('/plot', methods=['POST'])
 @login_required
