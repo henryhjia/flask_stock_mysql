@@ -27,7 +27,7 @@ The application uses an **MySQL database** to manage user credentials and store 
 
 📊 **Interactive Plot** – Displays stock price versus date.
 
-💾 **SQLite Database** – Stores user information and application data locally.
+💾 **MySQL Database** – Stores user information and application data locally.
 
 ⚡  **AI-Assisted Development** – Built efficiently with the help of Gemini.
 
