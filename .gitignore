@@ -41,4 +41,4 @@ build/
 dist/
 *.egg-info/
 
-README.md
+readme.txt
