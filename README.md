@@ -55,5 +55,5 @@ The application uses an **MySQL database** to manage user credentials and store 
 ## Deployment to GCP
 Once unit test passes, deploy it to GCP
 ```
-gcloud app deploy
+  $ gcloud app deploy
 ```
