@@ -34,7 +34,7 @@ The application uses an **MySQL database** to manage user credentials and store 
 ## Running the Application Locally
   1. Activate the virtual environment 
   ```
-  source venv/bin/activate
+  source .venv/bin/activate
   ```
   2. Install the required dependencies
   ```
